@@ -1,0 +1,4 @@
+{
+    "cmake.sourceDirectory": "/wsl.localhost/Ubuntu/home/topias/principles-of-digital-fabriction-g20/webserver",
+    "makefile.makefilePath": "./build/Makefile"
+}
