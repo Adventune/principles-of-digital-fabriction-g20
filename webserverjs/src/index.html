@@ -18,14 +18,18 @@
         <h1>Plant moisture</h1>
         <p>
             Moisture level:
-            <span id="moisture" hx-get="/moisture" hx-trigger="every 1s"
+            <span id="moisture" hx-get="/moisture" hx-trigger="every 1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
                 >Loading...</span
                 >
         </p>
-        <h3>
-        Trigger level</h1>
+        <h1>Trigger level</h1>
         <p>
-            <span id="trigger" hx-get="/trigger" hx-trigger="every 0.1s"
+            <span id="trigger" hx-get="/trigger" hx-trigger="every 0.1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
+                >Loading...</span>
+        </p>
+        <h1>Watering mode</h1>
+        <p>
+            <span id="trigger" hx-get="/watering-mode" hx-trigger="every 0.1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
                 >Loading...</span>
         </p>
     </body>
