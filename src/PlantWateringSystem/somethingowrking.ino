@@ -11,6 +11,18 @@ int pumpCooldown = 0;
 int waterLevel = 0;
 int moistureLevel = 0;
 
+String wifipasswd = "123";
+String wifiname = "panoulu";
+
+int thresHold = 0;
+int fetchTimer = 0;
+int fetchCooldown = 10000;
+
+int checkThresholdTimer = 0;
+int checkThresholdCooldown = 600000;
+
+//TODO: server information?
+
 void setup() {
   Serial.begin(115200);
   analogReadResolution(12);
@@ -18,6 +30,24 @@ void setup() {
   pinMode(pumpControlPin, OUTPUT);
   digitalWrite(pumpControlPin, LOW);
   digitalWrite(debugPowerPin, HIGH);
+
+  //TODO: Establish wifi connection
+
+  while(thresHold == 0){
+    if(fetchTimer <= 0){
+      fetchTimer = fetchCooldown;
+      int moistureLevel = readMoistureLevel();
+      //TODO: POST moisturelevel
+      delay(1000); //wait 1 sec before requesting threshold
+      //TODO: GET threshold
+      //TODO: set threshold
+      checkThresholdTimer = checkThresholdCooldown;
+    }
+    else{
+      delay(deltaTime);
+      fetchTimer -= deltaTime;
+    }
+  }
 }
 
 void loop() {
@@ -32,31 +62,30 @@ void loop() {
     controlWatering();
   }
 
-  waterLevel = readWaterLevel();
-
   moistureLevel = readMoistureLevel();
   Serial.print("Moisture level: ");
   Serial.println(moistureLevel);
-  int moisturePercent = map(moistureLevel, 2300, 3400, 0, 100);
-  Serial.print("Moisture level percent: ");
-  Serial.println(moisturePercent);
 
-  if(waterLevel < 1000){
-    Serial.println(waterLevel);
-    Serial.println("Water level low.");
+  //TODO: POST moistureLevel
+  //TODO: GET
+
+  if(checkThresholdTimer <= 0){
+    delay(1000); //wait 1 sec before requesting threshold
+      //TODO: GET threshold
+      //TODO: if not 0, set threshold
+    checkThresholdTimer = checkThresholdCooldown;
   }
-  else {
-    Serial.println(waterLevel);
-    Serial.println("Water level ok.");
+  else{
+    checkThresholdTimer -= deltaTime;
   }
 
 }
 
 void controlWatering(){
   moistureLevel = readMoistureLevel();
-  int moisturePercent = map(moistureLevel, 2300, 3400, 0, 100);
-  if(moisturePercent < 65){
-    pumpWater(2);
+  //int moisturePercent = map(moistureLevel, 2300, 3400, 0, 100);
+  if(moistureLevel < thresHold){
+    pumpWater(3);
     pumpCooldown = cooldown;
   }
 }
