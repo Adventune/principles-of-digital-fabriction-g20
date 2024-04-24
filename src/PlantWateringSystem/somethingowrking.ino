@@ -1,8 +1,8 @@
-const int waterLevelPin = 26;
+#include <WiFi.h>
+
+//const int waterLevelPin = 26; <- got rid of water level sensor in the prototype.
 const int soilMoisturePin = 27;
 const int pumpControlPin = 14;
-
-const int debugPowerPin = 0;
 
 const int cooldown = 300000;
 const int deltaTime = 5000;
@@ -10,9 +10,11 @@ const int deltaTime = 5000;
 int pumpCooldown = 0;
 int waterLevel = 0;
 int moistureLevel = 0;
+int pumpForXseconds = 5;
 
-String wifipasswd = "123";
-String wifiname = "panoulu";
+//Wifi information:
+const char* ssid = "ssid"; // <- Your own string here
+const char* password = "pass"; // <- Your own string here
 
 int thresHold = 0;
 int fetchTimer = 0;
@@ -21,7 +23,28 @@ int fetchCooldown = 10000;
 int checkThresholdTimer = 0;
 int checkThresholdCooldown = 600000;
 
-//TODO: server information?
+//TODO: parameters for making http requests to the server?
+
+bool wifi_connected() {
+  return WiFi.status() == WL_CONNECTED;
+}
+
+void connect_wifi(const char *ssid, const char *pass) {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, pass);
+  Serial.print("Connecting...");
+  while(!wifi_connected()) {
+    delay(500);
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("WiFi Connection Established!!");
+  Serial.println(WiFi.SSID());
+
+  Serial.print("Assinged IP: ");
+  Serial.println(WiFi.localIP());
+
+}
 
 void setup() {
   Serial.begin(115200);
@@ -29,9 +52,10 @@ void setup() {
   delay(1000);
   pinMode(pumpControlPin, OUTPUT);
   digitalWrite(pumpControlPin, LOW);
-  digitalWrite(debugPowerPin, HIGH);
 
-  //TODO: Establish wifi connection
+  //Connect to wifi
+  connect_wifi(ssid, password);
+  //TODO: Connect to server?
 
   while(thresHold == 0){
     if(fetchTimer <= 0){
@@ -85,7 +109,7 @@ void controlWatering(){
   moistureLevel = readMoistureLevel();
   //int moisturePercent = map(moistureLevel, 2300, 3400, 0, 100);
   if(moistureLevel < thresHold){
-    pumpWater(3);
+    pumpWater(pumpForXseconds);
     pumpCooldown = cooldown;
   }
 }
@@ -101,7 +125,7 @@ int readMoistureLevel() {
   return val;
 }
 
-int readWaterLevel() {
+/**int readWaterLevel() {
   int val = analogRead(waterLevelPin);
   return val;
-}
+}  <- got rid of water level sensor in the prototype.  **/
