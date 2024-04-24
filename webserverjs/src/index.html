@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Your plant!</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    </head>
+    <body
+        style="
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        "
+        >
+        <h1>Plant moisture</h1>
+        <p>
+            Moisture level:
+            <span id="moisture" hx-get="/moisture" hx-trigger="every 1s"
+                >Loading...</span
+                >
+        </p>
+        <h3>
+        Trigger level</h1>
+        <p>
+            <span id="trigger" hx-get="/trigger" hx-trigger="every 0.1s"
+                >Loading...</span>
+        </p>
+    </body>
+</html>
