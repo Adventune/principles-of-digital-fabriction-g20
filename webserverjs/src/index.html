@@ -5,32 +5,49 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body
         style="
+        
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        flex-direction: row;
+        justify-content: space-around;
         align-items: center;
         height: 100vh;
+        flex-wrap: wrap;
+        
         "
         >
-        <h1>Plant moisture</h1>
-        <p>
-            Moisture level:
-            <span id="moisture" hx-get="/moisture" hx-trigger="every 1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
-                >Loading...</span
-                >
-        </p>
-        <h1>Trigger level</h1>
-        <p>
-            <span id="trigger" hx-get="/trigger" hx-trigger="every 0.1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
-                >Loading...</span>
-        </p>
-        <h1>Watering mode</h1>
-        <p>
-            <span id="trigger" hx-get="/watering-mode" hx-trigger="every 0.1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
-                >Loading...</span>
-        </p>
+        <div class="bg-sky-400 p-2 rounded">
+            <h1>Plant moisture</h1>
+            <p>
+                Moisture level:
+                <span id="moisture" hx-get="/moisture" hx-trigger="every 1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
+                    >Loading...</span
+                    >
+            </p>
+        </div>
+        <div>
+            <h1>Trigger level</h1>
+            <p>
+                <span id="trigger" hx-get="/trigger" hx-trigger="every 0.1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
+                    >Loading...</span>
+            </p>
+            <form hx-post="/set-trigger" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'>
+                <div>
+                    <input type="text" class="border-2 border-black rounded-lg" name="triggerLevel">
+                </div>
+
+                <button class="btn btn-default">Submit</button>
+              </form>
+        </div>
+        <div>
+            <h1>Watering mode</h1>
+            <p>
+                <span id="trigger" hx-get="/watering-mode" hx-trigger="every 0.1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
+                    >Loading...</span>
+            </p>
+        </div>
     </body>
 </html>
