@@ -1,3 +1,0 @@
-A basic c++ file to control the plant watering based on soil moisture level, and reading the water level.
-
-Threshold for watering needs adjusting.
