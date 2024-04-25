@@ -1,11 +1,12 @@
 // "Database" for the webapp (no need for a real database for this project)
 // Imports
-const fs = require('fs');
+import fs from 'fs';
 
 // Create a "database" for the webapp
-export let database = {
+let database = {
     moisture: 0,
     'trigger-threshold': 0,
+    'last-update': null,
 };
 
 const writeDBToFile = () =>
@@ -14,15 +15,17 @@ const writeDBToFile = () =>
         console.log('Success');
     });
 
-export function save(req, res, next) {
+function save(req, res, next) {
     writeDBToFile();
     next();
 }
 
 // Read the database from the file
-export function init() {
+function init() {
     fs.readFile('src/database.json', (err, data) => {
         if (err) throw err;
         database = JSON.parse(data);
     });
 }
+
+export default { database, save, init };

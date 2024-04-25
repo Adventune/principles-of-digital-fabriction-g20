@@ -9,44 +9,81 @@
     </head>
     <body
         style="
-        
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-        align-items: center;
-        height: 100vh;
-        flex-wrap: wrap;
-        
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            height: 100vh;
+            width: fit-content;
+            margin: 0 auto;
+            flex-wrap: wrap;
         "
-        >
-        <div class="bg-sky-400 p-2 rounded">
-            <h1>Plant moisture</h1>
-            <p>
-                Moisture level:
-                <span id="moisture" hx-get="/moisture" hx-trigger="every 1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
+    >
+        <div class="w-full">
+            <h1 class="text-2xl font-bold mb-2">
+                Plant moisture:
+                <span
+                    id="moisture"
+                    hx-get="/moisture"
+                    hx-trigger="every 1s"
+                    hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
                     >Loading...</span
-                    >
-            </p>
+                >
+            </h1>
         </div>
-        <div>
-            <h1>Trigger level</h1>
-            <p>
-                <span id="trigger" hx-get="/trigger" hx-trigger="every 0.1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
-                    >Loading...</span>
-            </p>
-            <form hx-post="/set-trigger" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'>
-                <div>
-                    <input type="text" class="border-2 border-black rounded-lg" name="triggerLevel">
-                </div>
-
-                <button class="btn btn-default">Submit</button>
-              </form>
+        <div class="w-full">
+            <h1 class="text-2xl font-bold mb-4">
+                Trigger level (Current:
+                <span
+                    id="trigger"
+                    hx-get="/trigger"
+                    hx-trigger="every 1s"
+                    hx-headers='{"MarkoAuth": "Markonsalasana2024", "Content-Type": "application/json"}'
+                    >Loading...</span
+                >
+                )
+            </h1>
+            <button
+                class="rounded px-2 py-1 bg-gray-200 hover:bg-gray-300 transition-colors"
+                onclick="document.querySelector('form').style.display = 'block'; this.style.display = 'none'"
+            >
+                Update?
+            </button>
+            <form
+                hx-post="/set-trigger"
+                class="w-full flex gap-2 mb-1"
+                style="display: none"
+                hx-target="#triggerMessage"
+                hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
+            >
+                <input
+                    type="number"
+                    min="0"
+                    max="4096"
+                    class="border border-black rounded w-32"
+                    name="triggerLevel"
+                    id="triggerLevel"
+                />
+                <button
+                    type="submit"
+                    class="rounded px-2 py-1 bg-gray-200 hover:bg-gray-300 transition-colors"
+                >
+                    Submit
+                </button>
+            </form>
+            <div id="triggerMessage"></div>
         </div>
-        <div>
-            <h1>Watering mode</h1>
+        <div class="w-full">
+            <h1 class="text-2xl font-bold mb-2">Manually watering?</h1>
             <p>
-                <span id="trigger" hx-get="/watering-mode" hx-trigger="every 0.1s" hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
-                    >Loading...</span>
+                <span
+                    id="trigger"
+                    hx-get="/watering-mode"
+                    hx-trigger="every 1s"
+                    hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
+                    >Loading...</span
+                >
             </p>
         </div>
     </body>

@@ -19,8 +19,8 @@ int wateringThreshold = 0;  // Fetched from server
 unsigned long lastPump = 0; // Last time the pump was used
 
 // Wifi & webserver information
-const char SSID[] = "";                        // <- Your own string here
-const char PASSWORD[] = "";                    // <- Your own string here
+const char SSID[] = "DNA-WIFI-D412";           // <- Your own string here
+const char PASSWORD[] = "50623233";            // <- Your own string here
 const char HOST_NAME[] = "pdf-g20.binop.fi";   // hostname of web server
 const String HOST_NAME_S = "pdf-g20.binop.fi"; // hostname of web server
 const int HTTP_TIMEOUT = 10000;                // 10 seconds
@@ -41,17 +41,35 @@ void setup() {
   Serial.begin(9600);
 
   // Comment out the following lines if you dont't want to wait for serial
-  while (Serial.available() == 0) {
+  while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+
+  // Looks like junk but just don't touch it
+  Serial.println();
+  Serial.println("    _____ __________  __      __  _________");
+  Serial.println("   /  _  \\\\______   \\/  \\    /  \\/   _____/");
+  Serial.println("  /  /_\\  \\|     ___/\\   \\/\\/   /\\_____  \\ ");
+  Serial.println(" /    |    \\    |     \\        / /        \\");
+  Serial.println(" \\____|__  /____|      \\__/\\  / /_______  /");
+  Serial.println("         \\/                 \\/          \\/ ");
+  Serial.println("\n > Automatic plant watering system by PDF group 20 \n");
+
+  Serial.println(" > Starting setup");
 
   // Allow values up to 4096 for analogRead
   analogReadResolution(12);
   pinMode(PUMP_CONTROL_PIN, OUTPUT);
   digitalWrite(PUMP_CONTROL_PIN, LOW);
 
+  // Set the last pump time to current time minus the cooldown time
+  lastPump = millis() - PUMP_COOLDOWN;
+
   // Connect to wifi
   connect_wifi();
+
+  Serial.println(" > Beginning main loop execution \n");
+  Serial.println(" ============================= \n");
 }
 
 // Wifi connection function. Connects to the wifi network or "hangs" if the wifi
@@ -59,7 +77,7 @@ void setup() {
 void connect_wifi() {
   // Check for the presence of the shield
   if (WiFi.status() == WL_NO_SHIELD) {
-    Serial.println("WiFi shield not present");
+    Serial.println(" >>> WiFi shield not present");
     // don't continue:
     while (true)
       ;
@@ -68,37 +86,55 @@ void connect_wifi() {
   // Keep trying to connect to the WiFi network
   while (status != WL_CONNECTED) {
     // Print connection information
-    Serial.print("Attempting to connect to WPA SSID: ");
+    Serial.print(" > Attempting to connect to WPA SSID: ");
     Serial.println(SSID);
 
     status = WiFi.begin(SSID, PASSWORD); // Connect to WPA/WPA2 network
-    delay(8000); // Delay to allow connection to be established
+    delay(6000); // Delay to allow connection to be established
   }
 
   // Print on successful connection
-  Serial.println("WiFi Connection Established!!");
+  Serial.print(" >> WiFi Connection Established!! SSID: ");
 
   // Print the SSID and IP address in the connected network
-  Serial.println(WiFi.SSID());
-  Serial.print("Assinged IP: ");
-  Serial.println(WiFi.localIP());
+  Serial.print(WiFi.SSID());
+  Serial.print(", ");
+  Serial.print("Assinged IP in network: ");
+  Serial.print(WiFi.localIP());
+  Serial.println("\n");
 }
 
 // Main functions (loop and utility functions)
 // Main execution loop
 void loop() {
   // Execute the main loop every DELTA_TIME
-
   delay(DELTA_TIME);
-
   // Read the moisture level
   moistureLevel = readMoistureLevel();
 
-  // If wateringThreshold has not been set, update moisture to server and try to
-  // fetch threshold
+  // Print the moisture level
+  Serial.println(" > Moisture level: " + String(moistureLevel));
+
+  // Update the moisture level to the server
+  Response res = post("/set-moisture", String(moistureLevel));
+  if (res.status != 200) {
+    Serial.println(" >>> Failed to update moisture level");
+  }
+
+  // Fetch the watering threshold from the server
+  res = get("/trigger");
+  if (res.status == 200) {
+    if (wateringThreshold != res.body.toInt()) {
+      wateringThreshold = res.body.toInt();
+      Serial.println(" > Watering threshold updated: " +
+                     String(wateringThreshold));
+    }
+  } else {
+    Serial.println(" > Failed to fetch threshold");
+  }
+
+  // If the watering threshold is 0, don't water the plant
   if (wateringThreshold == 0) {
-    // TODO: POST moisturelevel
-    // TODO: GET threshold
     return;
   }
 
@@ -114,6 +150,8 @@ void loop() {
       pumpWater(PUMP_DURATION);
     }
   }
+
+  Serial.println("\n ============================= \n");
 }
 // Function to read the moisture level from the soil
 int readMoistureLevel() { return analogRead(SOIL_MOISTURE_PIN); }
@@ -124,8 +162,10 @@ int timeSince(unsigned long time) { return millis() - time; }
 
 // Function to pump water for a given duration
 void pumpWater(int duration) {
+  Serial.println(" > Pumping water for " + String(duration / TO_SECONDS) +
+                 " seconds");
   digitalWrite(PUMP_CONTROL_PIN, HIGH); // Turn on pump
-  delay(1000 * duration);
+  delay(duration);
   digitalWrite(PUMP_CONTROL_PIN, LOW); // Turn off pump
 }
 
@@ -156,21 +196,21 @@ More info on HTTP messages:
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages
 */
 
-// Function to send a GET request to the server. Returns true if the request was
-// successful
-bool get(String path) {
+// Function to send a GET request to the server. Returns the response as a
+// struct. The struct contains the necessary information to handle the response
+// and a little extra for debugging
+Response get(String path) {
   if (client.connect(HOST_NAME, 80)) { // Try to connect to the server
-    // Connection successful
-    Serial.println("Connected");
     // Make a HTTP request:
     client.println("GET " + path + " HTTP/1.1");
     client.println("Host: " + HOST_NAME_S);
+    client.println("MarkoAuth: Markonsalasana2024");
     client.println("Connection: close");
     client.println();
   } else {
     // Cannot connect to the server
-    Serial.println("Connection failed");
-    return false;
+    Serial.println(" >>> Cannot connect to server");
+    return Response{0, "", ""};
   }
 
   // wait for data until timeout
@@ -179,35 +219,95 @@ bool get(String path) {
     delay(1); // MS delay to keep timeout accurate
 
     if (timeSince(started) > HTTP_TIMEOUT) {
-      Serial.println("Timeout");
+      Serial.println(" >>> Timeout");
       client.stop();
-      return false;
+      return Response{0, "", ""};
     }
   }
-  return true;
+  return parseResponse();
+}
+
+// Function to send a POST request to the server. Returns the response as a
+// struct. The struct contains the necessary information to handle the response
+// and a little extra for debugging
+Response post(String path, String body) {
+  if (client.connect(HOST_NAME, 80)) { // Try to connect to the server
+    // Make a HTTP request:
+    client.println("POST " + path + " HTTP/1.1");
+    client.println("Host: " + HOST_NAME_S);
+    client.println("MarkoAuth: Markonsalasana2024");
+    client.println("Connection: close");
+    client.println("Content-Type: text/plain");
+    client.println("Content-Length: " + String(body.length()));
+    client.println();
+    client.println(body);
+  } else {
+    // Cannot connect to the server
+    Serial.println(" >>> Cannot connect to server");
+    return Response{0, "", ""};
+  }
+
+  // wait for data until timeout
+  unsigned long started = millis();
+  while (!client.available()) {
+    delay(1); // MS delay to keep timeout accurate
+
+    if (timeSince(started) > HTTP_TIMEOUT) {
+      Serial.println(" >>> Timeout");
+      client.stop();
+      return Response{0, "", ""};
+    }
+  }
+  return parseResponse();
 }
 
 // Function to parse HTTP/1.1 response into status code, raw response and body
-// text
+// text. Lot of different condition handling are missing, but it should work for
+// this.
 Response parseResponse() {
-  // TODO
-  // Read the response from the server
-  String rawResponse = "";
-  while (client.available()) {
+  String rawResponse = ""; // Raw response string (all reads are appended here)
+
+  // Read the first 8 characters of the response (HTTP/1.1)
+  for (int i = 0; i < 8; i++) {
     char c = client.read();
     rawResponse += c;
   }
 
   // Make sure the response is HTTP/1.1
-  if (!client.find("HTTP/1.1")) {
-    Serial.println("Unsupported HTTP protocol");
+  if (rawResponse != "HTTP/1.1") {
+    Serial.println(" >>> Unsupported HTTP protocol");
     return Response{0, rawResponse, ""};
   }
 
-  String res = "";
-  int st = client.parseInt();
-  Serial.println("Status code: " + st);
-  return Response{st, rawResponse, res};
+  // Read the space after HTTP/1.1
+  char c = client.read();
+  rawResponse += c;
+
+  // Read the status code (3 characters)
+  String status = "";
+  for (int i = 0; i < 3; i++) {
+    char c = client.read();
+    rawResponse += c;
+    status += c;
+  }
+  int statusInt = status.toInt(); // Convert status code to integer
+
+  // Read until the end of the response headers
+  const String endOfHeaders = "\r\n\r\n";
+  while (!rawResponse.endsWith(endOfHeaders) && client.available()) {
+    char c = client.read();
+    rawResponse += c;
+  }
+
+  // Read the body of the response
+  String body = "";
+  while (client.available()) {
+    char c = client.read();
+    body += c;
+    rawResponse += c;
+  }
+
+  return Response{statusInt, rawResponse, body};
 }
 
 /**
