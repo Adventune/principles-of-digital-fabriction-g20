@@ -8,7 +8,7 @@ import bodyParser from 'body-parser';
 const PORT = 3000;
 
 // Variables
-let wateringMode = false;
+let watering = false;
 
 // Database init
 db.init();
@@ -40,7 +40,8 @@ app.get('/moisture', (req, res) => {
     res.status(200).send(db.database['moisture'].toString());
 });
 app.get('/trigger', (req, res) => {
-    res.status(200).send(db.database['trigger-threshold'].toString());
+    res.status(200).send((watering ? 42069 : db.database['trigger-threshold']).toString());
+    if (watering && !req.get('X-Web')) watering = false;
 });
 
 // POST Routes
@@ -66,13 +67,8 @@ app.post(
     db.save
 );
 
-app.get('/watering-mode', (req, res) => {
-    res.send(wateringMode);
-    wateringMode = false;
-});
-
-app.get('/set-watering-mode', (req, res) => {
-    wateringMode = req.body.wateringMode;
+app.get('/water', (req, res) => {
+    watering = true;
     res.sendStatus(200);
 });
 

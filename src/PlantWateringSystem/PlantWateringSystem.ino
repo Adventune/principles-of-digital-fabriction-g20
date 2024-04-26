@@ -7,11 +7,11 @@ const int SOIL_MOISTURE_PIN = 27;
 const int PUMP_CONTROL_PIN = 14;
 
 // Constants
-const int TO_SECONDS = 1000;              // 1000 milliseconds = 1 second
-const int TO_MINUTES = 60000;             // 60000 milliseconds = 1 minute
-const int PUMP_COOLDOWN = 5 * TO_MINUTES; // 5 minutes
-const int PUMP_DURATION = 5 * TO_SECONDS; // 5 seconds
-const int DELTA_TIME = 5 * TO_SECONDS;    // 5 seconds
+const int TO_SECONDS = 1000;               // 1000 milliseconds = 1 second
+const int TO_MINUTES = 60000;              // 60000 milliseconds = 1 minute
+const int PUMP_COOLDOWN = 5 * TO_MINUTES;  // 5 minutes
+const int PUMP_DURATION = 10 * TO_SECONDS; // 10 seconds
+const int DELTA_TIME = 5 * TO_SECONDS;     // 5 seconds
 
 // Variables
 int moistureLevel = 0;      // 0-4096 (In reality 2300 - 3400)
@@ -19,8 +19,8 @@ int wateringThreshold = 0;  // Fetched from server
 unsigned long lastPump = 0; // Last time the pump was used
 
 // Wifi & webserver information
-const char SSID[] = "DNA-WIFI-D412";           // <- Your own string here
-const char PASSWORD[] = "50623233";            // <- Your own string here
+const char SSID[] = "MarkonNetti";             // <- Your own string here
+const char PASSWORD[] = "12345678";            // <- Your own string here
 const char HOST_NAME[] = "pdf-g20.binop.fi";   // hostname of web server
 const String HOST_NAME_S = "pdf-g20.binop.fi"; // hostname of web server
 const int HTTP_TIMEOUT = 10000;                // 10 seconds
@@ -38,12 +38,14 @@ struct Response {
 // Arduino setup function
 void setup() {
   // Begin serial communication
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // Comment out the following lines if you dont't want to wait for serial
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
+  /*
+while (!Serial) {
+  ; // wait for serial port to connect. Needed for native USB port only
+}
+*/
 
   // Looks like junk but just don't touch it
   Serial.println();
@@ -90,7 +92,7 @@ void connect_wifi() {
     Serial.println(SSID);
 
     status = WiFi.begin(SSID, PASSWORD); // Connect to WPA/WPA2 network
-    delay(6000); // Delay to allow connection to be established
+    delay(10 * TO_SECONDS); // Delay to allow connection to be established
   }
 
   // Print on successful connection
@@ -139,7 +141,7 @@ void loop() {
   }
 
   // Allow pump to be used only once every 5 minutes
-  if (timeSince(lastPump) > PUMP_COOLDOWN) {
+  if (timeSince(lastPump) > PUMP_COOLDOWN || wateringThreshold == 42069) {
     // Moisture percentage can be calculated but it might not be practical, nor
     // an accurate representation of the moisture level.
     // int moisturePercent = map(moistureLevel, 2300, 3400, 0, 100);

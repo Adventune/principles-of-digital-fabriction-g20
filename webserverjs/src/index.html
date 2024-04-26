@@ -39,7 +39,7 @@
                     id="trigger"
                     hx-get="/trigger"
                     hx-trigger="every 1s"
-                    hx-headers='{"MarkoAuth": "Markonsalasana2024", "Content-Type": "application/json"}'
+                    hx-headers='{"MarkoAuth": "Markonsalasana2024", "Content-Type": "application/json", "X-Web": "true"}'
                     >Loading...</span
                 >)
             </h1>
@@ -75,6 +75,14 @@
         </div>
         <div class="w-full">
             <h1 class="text-2xl font-bold mb-2">Manually watering?</h1>
+            <button
+                type="submit"
+                class="rounded px-2 py-1 bg-gray-200 hover:bg-gray-300 transition-colors"
+                hx-headers='{"MarkoAuth": "Markonsalasana2024"}'
+                hx-get="/water"
+            >
+                Water
+            </button>
             <p>
                 <span
                     id="trigger"
