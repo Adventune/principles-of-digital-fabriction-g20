@@ -22,9 +22,17 @@ function save(req, res, next) {
 
 // Read the database from the file
 function init() {
-    fs.readFile('src/database.json', (err, data) => {
-        if (err) throw err;
-        database = JSON.parse(data);
+    // Check if the file exists
+    fs.access('src/database.json', fs.constants.F_OK, (err) => {
+        if (err) {
+            // If it doesn't, create it
+            writeDBToFile();
+        } else {
+            fs.readFile('src/database.json', (err, data) => {
+                if (err) throw err;
+                database = JSON.parse(data);
+            });
+        }
     });
 }
 

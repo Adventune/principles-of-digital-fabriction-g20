@@ -1,17 +1,17 @@
 services:
-  webserver:
-    build: .
-    command: npm run dev
-    ports:
-      - "3000:3000"
-    develop:
-      watch:
-        - action: sync
-          path: ./src
-          target: /app/src
-          ignore:
-            - node_modules/
-        - action: rebuild
-          path: package.json
-        - action: rebuild
-          path: Dockerfile
+    webserver:
+        build: .
+        command: npm run dev
+        ports:
+            - '3000:3000'
+        develop:
+            watch:
+                - action: sync
+                  path: ./src
+                  target: /app/src
+                  ignore:
+                      - node_modules/
+                - action: rebuild
+                  path: package.json
+                - action: rebuild
+                  path: Dockerfile

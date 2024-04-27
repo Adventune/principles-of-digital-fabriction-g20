@@ -72,6 +72,10 @@ app.get('/water', (req, res) => {
     res.sendStatus(200);
 });
 
+app.get('/battery', (req, res) => {
+    res.status(200).send('<p>Last moisture update: ' + db.database['last-update'] + '</p>');
+});
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`app listening on port ${PORT}`);
